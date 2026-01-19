@@ -58,8 +58,8 @@ main() {
 
     for dir in tools/*; do
         if [ -f "$dir/main.go" ]; then
-            echo "Building $TOOL_NAME..."
-            (cd "$dir" && go build -o "$BIN_DIR/$(basename "${dir}")")
+            echo "Building $(basename ${dir})..."
+            (cd "$dir" && go build -o "$BIN_DIR/$(basename "${dir}")" main.go)
         fi
     done
 }
