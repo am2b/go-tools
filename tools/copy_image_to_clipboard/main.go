@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "fmt"
     "os"
     "os/exec"
@@ -26,12 +27,29 @@ func getAppleScriptImageType(ext string) (string, error) {
 }
 
 func main() {
-    if len(os.Args) < 2 {
+    // 定义-h选项
+    helpFlag := flag.Bool("h", false, "Show usage information")
+
+    // 解析命令行参数
+    flag.Parse()
+
+    // 如果-h被设置,打印帮助信息
+    if *helpFlag {
+        fmt.Println("copy指定的一张图片到剪贴板")
+        fmt.Println("Usage:")
+        fmt.Println("Usage: copy_image_to_clipboard <image-path>")
+        fmt.Println("Options:")
+        fmt.Println("-h:Show this help message")
+        return
+    }
+
+    // 检查路径参数
+    if len(flag.Args()) < 1 {
         fmt.Fprintf(os.Stderr, "用法:%s <image-path>\n", filepath.Base(os.Args[0]))
         os.Exit(1)
     }
 
-    imagePath := os.Args[1]
+    imagePath := flag.Arg(0)
     if _, err := os.Stat(imagePath); os.IsNotExist(err) {
         fmt.Fprintf(os.Stderr, "文件不存在:%s\n", imagePath)
         os.Exit(1)
