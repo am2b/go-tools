@@ -60,7 +60,7 @@ main() {
     echo "Building ${tool}..."
 
     if [ -f "./tools/${tool}/main.go" ]; then
-        (cd "./tools/${tool}" && go build -o "$BIN_DIR/tool" main.go)
+        (cd "./tools/${tool}" && go build -o "$BIN_DIR/${tool}" main.go)
     fi
 
     echo "Done"
