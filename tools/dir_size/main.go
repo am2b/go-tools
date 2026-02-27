@@ -1,12 +1,45 @@
 package main
 
 import (
+    "errors"
+    "flag"
     "fmt"
     "os"
     "path/filepath"
     "strings"
     "sync"
 )
+
+func usage() {
+    fmt.Println("计算参数所给定目录的大小,默认为当前目录")
+    fmt.Println("Usage:")
+    fmt.Println("dir_size [directory_path]")
+    fmt.Println("Options:")
+    fmt.Println("-h:Show this help message")
+}
+
+func VerifyDir(dir string) (string, error) {
+    //转换为绝对路径
+    dir, err := filepath.Abs(dir)
+    if err != nil {
+        return "", err
+    }
+
+    //stat
+    info, err := os.Stat(dir)
+    if err != nil {
+        if os.IsNotExist(err) {
+            return "", errors.New("directory does not exist")
+        }
+        return "", err
+    }
+
+    if !info.IsDir() {
+        return "", errors.New("path is not a directory")
+    }
+
+    return dir, nil
+}
 
 func getFileSize(filePath string, wg *sync.WaitGroup, ch chan int64) {
     defer wg.Done()
@@ -53,6 +86,7 @@ func getDirSize(path string) (int64, error) {
 }
 
 func convertSize(sizeInBytes int64) string {
+    // MiB = 1024 进制,MB = 1000 进制
     units := []string{"B", "KiB", "MiB", "GiB", "TiB"}
     var unitIndex int
     size := float64(sizeInBytes)
@@ -66,14 +100,23 @@ func convertSize(sizeInBytes int64) string {
 }
 
 func main() {
-    // 获取命令行参数
-    if len(os.Args) < 2 {
-        fmt.Println("Usage: go run dir_size.go <directory_path>")
+    // 定义-h选项
+    helpFlag := flag.Bool("h", false, "Show usage information")
+
+    // 解析命令行参数
+    flag.Parse()
+
+    // 如果-h被设置,打印帮助信息
+    if *helpFlag {
+        usage()
         return
     }
 
     // 获取目录路径
-    path := os.Args[1]
+    path := "."
+    if len(flag.Args()) > 0 {
+        path = flag.Arg(0)
+    }
 
     // 处理路径中的 ~，将其替换为用户的主目录
     homeDir, err := os.UserHomeDir()
@@ -87,6 +130,12 @@ func main() {
         path = strings.Replace(path, "~", homeDir, 1)
     }
 
+    // 验证目录
+    path, err = VerifyDir(path)
+    if err != nil {
+        panic(err)
+    }
+
     // 计算目录大小
     totalSize, err := getDirSize(path)
     if err != nil {
@@ -95,5 +144,5 @@ func main() {
     }
 
     // 输出结果
-    fmt.Println("Total directory size:", convertSize(totalSize))
+    fmt.Println(convertSize(totalSize))
 }
