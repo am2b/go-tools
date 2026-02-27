@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "fmt"
     "github.com/BurntSushi/toml"
     "github.com/am2b/go-tools/pkg/pathutil"
@@ -31,6 +32,22 @@ func getAppleScriptImageType(ext string) (string, error) {
 }
 
 func main() {
+    // 定义-h选项
+    helpFlag := flag.Bool("h", false, "Show usage information")
+
+    // 解析命令行参数
+    flag.Parse()
+
+    // 如果-h被设置,打印帮助信息
+    if *helpFlag {
+        fmt.Println("读取helper.toml,copy指定目录下的一张图片到剪贴板,然后发送'粘贴'消息给hammerspoon")
+        fmt.Println("Usage:")
+        fmt.Println("copy_image_for_mail [-h]")
+        fmt.Println("Options:")
+        fmt.Println("-h:Show this help message")
+        return
+    }
+
     home, _ := os.UserHomeDir()
     tomlPath := filepath.Join(home, ".config", "mail-helper", "helper.toml")
 
